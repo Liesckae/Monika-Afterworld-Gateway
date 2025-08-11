@@ -1,4 +1,5 @@
-from base import MetaBase
+from mag_scripts.actions.base import MetaBase
+from mag_scripts.logger import logger
 
 class Action(MetaBase):
 
@@ -9,12 +10,8 @@ class Action(MetaBase):
         return ctx.get('name') == "TestAction" 
     def run(self,ctx: dict):
         print("Hello Monika!")
+        logger.info('Hello Monika!')
     def script(self, ctx: dict) -> list[dict]:
         return super().script(ctx)
     
-# Test code
-if __name__ == '__main__':
 
-    ctx = {}
-
-    Action().run(ctx)

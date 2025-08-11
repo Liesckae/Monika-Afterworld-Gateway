@@ -1,8 +1,11 @@
 from abc import abstractmethod
+from mag_scripts.logger import logger
 
 class MetaBase:
     # Registry of actions and their name and description.
-    _registry = {}
+    _registry : dict[str,'MetaBase'] = {}
+    name : str
+    description : str
 
     # Registration behavior
     def __init_subclass__(cls,**kw):
@@ -14,7 +17,10 @@ class MetaBase:
                 f'{cls.__name__} Must define a non-empty string class attribute "name"'
                 )
         if name in MetaBase._registry:
-            raise TypeError(f'"name"{name} already exists')     
+            raise TypeError(f'"name"{name} already exists')
+        cls._registry[cls.name] = cls
+        logger.info(f'{cls.name} was registered')
+        
         
     @abstractmethod
     def check(self,ctx: dict) -> bool:
@@ -26,6 +32,9 @@ class MetaBase:
     # TODO: 完成Monika演出的字典形式
     def script(self, ctx: dict) -> list[dict]:
         return []
+    
+# Init the registry
+MetaBase._registry = {}
         
     
         

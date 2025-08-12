@@ -1,7 +1,7 @@
 from mag_scripts.actions.base import MetaBase
 from mag_scripts.logger import logger
 
-class Action(MetaBase):
+class TestAction(MetaBase):
 
     name = "TestAction"
     description = 'A testing action'

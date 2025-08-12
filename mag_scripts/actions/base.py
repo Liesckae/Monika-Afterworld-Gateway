@@ -2,31 +2,34 @@ from abc import ABCMeta, abstractmethod
 from mag_scripts.logger import logger
 
 
+class MetaBaseMeta(ABCMeta):
+    def __init__(cls, name, bases, namespace):
+        super(MetaBaseMeta, cls).__init__(name, bases, namespace)
+        if name == 'MetaBase':
+            return
+        cls_name = getattr(cls, 'name', None)
+        cls.set_topic(cls.topic)
+        # Checker
+        if not cls_name or not isinstance(cls_name, basestring) or len(cls_name) < 1:
+            raise TypeError(
+                u'%s Must define a non-empty string class attribute "name"' % cls.__name__
+            )
+        if cls_name in MetaBase._registry:
+            raise TypeError(u'"name"%s already exists' % cls_name)
+        MetaBase._registry[cls.name] = cls
+        MetaBase._topic_registry[cls.name] = cls.topic
+        logger.info(u'%s was registered' % cls.name)
+        logger.info(u'%s Topics: %s' % (cls.name, cls.topic))
+
+
 class MetaBase(object):
-    __metaclass__ = ABCMeta
+    __metaclass__ = MetaBaseMeta
     # Registry of actions and their name and description.
     _registry = {}
     _topic_registry = {}
     name = None
     description = None
     topic = []
-
-    # Registration behavior
-    def __init_subclass__(cls, **kw):
-        super(MetaBase, cls).__init_subclass__(** kw)
-        name = getattr(cls, 'name', None)
-        cls.set_topic(cls.topic)
-        # Checker
-        if not name or not isinstance(name, basestring) or len(name) < 1:  
-            raise TypeError(
-                u'%s Must define a non-empty string class attribute "name"' % cls.__name__
-                )
-        if name in MetaBase._registry:
-            raise TypeError(u'"name"%s already exists' % name)
-        cls._registry[cls.name] = cls
-        cls._topic_registry[cls.name] = cls.topic
-        logger.info(u'%s was registered' % cls.name)   
-        logger.info(u'%s Topics: %s' % (cls.name, cls.topic)) 
 
     @abstractmethod
     def check(self, ctx):
@@ -43,6 +46,3 @@ class MetaBase(object):
 
 # Init the registry
 MetaBase._registry = {}
-        
-    
-        

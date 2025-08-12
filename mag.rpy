@@ -11,16 +11,18 @@ init -989 python in mas.submod_utils:
     # TODO: 增加对于子模块执行次数的监控
     from store import _preferences as preferences
     from store import persistent
+    import renpy.store as store
     import renpy.config as config
     import os,sys
 
-    mag_path = os.path.join(config.basedir, 'game', 'Submods', 'mag')
+    mag_path = os.path.join(config.basedir, 'game', 'Submods', 'Monika-Afterworld-Gateway')
     if mag_path not in sys.path:
         sys.path.insert(0, mag_path)
 
     from mag_scripts.logger import logger
     from mag_scripts.registry import load_modules, get_actions,get_topics
     from mag_scripts import actions
+    store._mag_actions = get_actions()
     # Load modules
     load_modules()
     # set up
@@ -35,16 +37,17 @@ screen main_settings_pane():
     vbox:
         xmaximum 800
         xfill True
+        spacing 10
         style_prefix "check"
 
-        textbutton ">Basic Settings":
+        textbutton "⚙ Basic Settings":
+            style "check_button"
             ypos 1
             selected False
             action Show("basic_setting_screen")
+            hover_sound "mod_assets/sfx/click.wav"
             
-# TODO: 增加模块显示，并允许单独加载/卸载模块和子模组设置功能
 screen basic_setting_screen():
-
     key "noshift_T" action NullAction()
     key "noshift_t" action NullAction()
     key "noshift_M" action NullAction()
@@ -55,45 +58,71 @@ screen basic_setting_screen():
     key "noshift_e" action NullAction()
 
     modal True
-
     zorder 200
 
-    style_prefix "check"
-    add mas_getTimeFile("gui/overlay/confirm.png")
-
+    
+    
     frame:
+        
+        xmaximum 800
+        ymaximum 500
+        xalign 0.5
+        yalign 0.5
+        padding (20, 20)
+
         vbox:
-            ymaximum 300
-            xmaximum 800
+            spacing 15
             xfill True
-            yfill False
-            spacing 5
+            yfill True
 
-            viewport:
-                id "basic_view"
-                scrollbars True
-                ymaximum 250
-                xmaximum 780
+            text "{size=28}{color=#FFD700}Settings Panel{/color}{/size}" xalign 0.5 ypos 20
+            
+            null height 20
+            
+            hbox:
                 xfill True
-                yfill False
-                mousewheel True
-
-                vbox:
-                    xmaximum 780
-                    xfill True
-                    yfill False
-                    box_wrap False
-
-                    hbox:
-                        style_prefix "check"
-                        text "You really think there is anything here?!"
-                        
-                        for name, cls in get_actions().items():
-                            textbutton "[name] [persistent.submods_mod_switch.get(name,'?')]":
-                                action ToggleDict(persistent.submods_mod_switch,name)
+                spacing 20
                 
-        vbox:
+                vbox:
+                    xmaximum 380
+                    spacing 10
+                    
+                    text "{size=20}{color=#FFFFFF}Modules{/color}{/size}" xalign 0.5
+                    
+                    viewport:
+                        scrollbars "vertical"
+                        mousewheel True
+                        ymaximum 300
+                        xfill True
+                        
+                        vbox:
+                            spacing 5
+                            
+                            for name, cls in store._mag_actions.items():
+                                textbutton "[name]":
+                                    style "check_button"
+                                    action ToggleDict(persistent.submods_mod_switch, name)
+                                    hover_sound "mod_assets/sfx/hover.wav"
+                                    xfill True
+                                    
+            vbox:
+                xmaximum 380
+                spacing 10
+                
+                text "{size=20}{color=#FFFFFF}Options{/color}{/size}" xalign 0.5
+                
+                textbutton "Reset All Settings":
+                    style "check_button"
+                    action NullAction()
+                    hover_sound "mod_assets/sfx/hover.wav"
+                    xfill True
+                    
+        hbox:
             xalign 0.5
-            spacing 100
-            textbutton ">Back":
+            ypos 450
+            spacing 50
+            
+            textbutton "Back":
+                style "check_button"
                 action Hide("basic_setting_screen")
+                hover_sound "mod_assets/sfx/click.wav"

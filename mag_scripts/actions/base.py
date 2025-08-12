@@ -36,7 +36,7 @@ class MetaBase(object):
     def execute(self):
         pass
 
-    # TODO: 完成Monika演出的功能
+    # TODO: Complete the function of Monika's performance
     @classmethod
     def set_topic(cls, ctx):
         MetaBase.topic = ctx

@@ -22,13 +22,13 @@ init -989 python in mas.submod_utils:
     from mag_scripts.registry import load_modules, get_actions,get_topics
     from mag_scripts import actions
     # Load modules
-    registry.load_modules()
+    load_modules()
     # set up
     persistent.submods_mag_actions = get_actions()
     persistent.submods_mag_topics = get_topics()
     persistent.submods_mod_switch = {}
 
-    for name in register.get_actions().keys():
+    for name in get_actions().keys():
         persistent.submods_mod_switch.setdefault(name,False)
         
 screen main_settings_pane():

@@ -7,7 +7,7 @@ init -990 python:
         settings_pane="main_settings_pane"
     )
 
-init -990 python in mas.submod_utils:
+init -989 python in mas.submod_utils:
     # TODO: 增加对于子模块执行次数的监控
     from store import _preferences as preferences
     from store import persistent
@@ -21,8 +21,9 @@ init -990 python in mas.submod_utils:
     from mag_scripts.logger import logger
     from mag_scripts import register
     from mag_scripts import actions
-    # Load modules,set up
+    # Load modules
     registry.load_modules()
+    # set up
     persistent.submods_mag_actions = register.get_actions()
     persistent.submods_mag_topics = register.get_topics()
     persistent.submods_mod_switch = {}
@@ -30,9 +31,6 @@ init -990 python in mas.submod_utils:
     for name in register.get_actions().keys():
         persistent.submods_mod_switch.setdefault(name,False)
         
-    
-    
-
 screen main_settings_pane():
     vbox:
         xmaximum 800
@@ -87,7 +85,12 @@ screen basic_setting_screen():
                     box_wrap False
 
                     hbox:
+                        style_prefix "check"
                         text "You really think there is anything here?!"
+                        
+                        for name, cls in register.get_actions().items():
+                            textbutton f"{name} {persistent.submods_mod_switch.get(name,'?')}":
+                                action ToggleDict(persistent.submods_mod_switch,name)
                 
         vbox:
             xalign 0.5

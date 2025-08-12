@@ -8,10 +8,8 @@ class Action(MetaBase):
 
     def check(self, ctx: dict) -> bool:
         return ctx.get('name') == "TestAction" 
-    def run(self,ctx: dict):
+    def execute(self):
         print("Hello Monika!")
-        logger.info('Hello Monika!')
-    def script(self, ctx: dict) -> list[dict]:
-        return super().script(ctx)
-    
+        logger.debug('Hello Monika!')
+
 

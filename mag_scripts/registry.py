@@ -17,3 +17,6 @@ def load_modules():
 
 def get_actions() -> dict[str, MetaBase]:
     return MetaBase._registry
+
+def get_scripts() -> dict[str, list[str]]:
+    return MetaBase._script_registry

@@ -1,15 +1,23 @@
 from mag_scripts.actions.base import MetaBase
 from mag_scripts.logger import logger
+import mag_scripts.actions.base as base
 
-class TestAction(MetaBase):
+class Action(MetaBase):
 
-    name = "TestAction"
-    description = 'A testing action'
+    name = "test"
+    description = ''
+    topic = "test_topic"
+    triggers = [base.DebugTrigger]
 
-    def check(self, ctx):
-        return ctx.get('name') == "TestAction" 
+    @classmethod
+    def set_topic(cls, topic):
+        cls.topic = topic
 
-    def execute(self):
-        logger.debug('Hello Monika!')
+    def __init__(self):
+        super(Action, self).__init__() 
+
+    @classmethod
+    def execute(cls):
+        logger.info(u'Test module executed')
 
 

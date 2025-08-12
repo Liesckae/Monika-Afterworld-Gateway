@@ -14,24 +14,44 @@ init -989 python in mas.submod_utils:
     import renpy.store as store
     import renpy.config as config
     import os,sys
+    import imp
+    
+    # Force reload MetaBase to avoid cache issues
+    if 'mag_scripts.meta' in sys.modules:
+        imp.reload(sys.modules['mag_scripts.meta'])
+    if 'mag_scripts.registry' in sys.modules:
+        imp.reload(sys.modules['mag_scripts.registry'])
 
     mag_path = os.path.join(config.basedir, 'game', 'Submods', 'Monika-Afterworld-Gateway')
     if mag_path not in sys.path:
         sys.path.insert(0, mag_path)
 
+    import mag_scripts.actions.base as base
     from mag_scripts.logger import logger
-    from mag_scripts.registry import load_modules, get_actions,get_topics
+    from mag_scripts.registry import load_modules, get_actions,get_topics,get_triggers
     from mag_scripts import actions
+    import os
+    
+    # Load modules from mag_scripts
+    
     store._mag_actions = get_actions()
-    # Load modules
     load_modules()
-    # set up
+    
+    # Set up
+    persistent.submods_mag_status = base.load_module_status()
     persistent.submods_mag_actions = get_actions()
     persistent.submods_mag_topics = get_topics()
     persistent.submods_mod_switch = {}
-
+    
     for name in get_actions().keys():
         persistent.submods_mod_switch.setdefault(name,False)
+        
+    # Start module monitoring daemon
+    from mag_scripts.actions.base import ModuleDaemon
+    if not hasattr(store, '_mag_daemon'):
+        store._mag_daemon = ModuleDaemon(get_triggers())
+        store._mag_daemon.start()
+        logger.info('ModuleDaemon started')
         
 screen main_settings_pane():
     vbox:
@@ -60,8 +80,6 @@ screen basic_setting_screen():
     modal True
     zorder 200
 
-    
-    
     frame:
         
         xmaximum 800

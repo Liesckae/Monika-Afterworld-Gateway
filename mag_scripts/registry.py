@@ -1,10 +1,13 @@
 import os
 import imp
 import inspect
-from mag_scripts.actions.base import MetaBase
+from mag_scripts.meta import MetaBase
+from mag_scripts.constants import TRIGGER_REGISTRY, MODULE_STATUS_REGISTRY
 from mag_scripts.logger import logger
 
 def load_modules():
+    if not hasattr(MetaBase, '_topic_registry'):
+        MetaBase._topic_registry = {}
     n = 0
     # Get the directory path of the current file
     current_path = os.path.abspath(inspect.getfile(inspect.currentframe()))
@@ -19,7 +22,7 @@ def load_modules():
             module_name = filename[:-3]
             # Import the module
             module_path = os.path.join(actions_dir, filename)
-            imp.load_source('.actions.%s' % module_name, module_path)
+            imp.load_source('mag_scripts.actions.%s' % module_name, module_path)
             logger.info("%s is loaded" % module_name)
             n += 1
     
@@ -29,7 +32,19 @@ def load_modules():
 
 
 def get_actions():
+    if not hasattr(MetaBase, '_registry'):
+        MetaBase._registry = {}
+        MetaBase._registry.setdefault('actions', {})
+        MetaBase._registry.setdefault('triggers', {})
     return MetaBase._registry
 
 def get_topics():
+    if not hasattr(MetaBase, '_topic_registry'):
+        MetaBase._topic_registry = {}
     return MetaBase._topic_registry
+
+def get_triggers():
+    return TRIGGER_REGISTRY
+
+def get_module_status():
+    return MODULE_STATUS_REGISTRY

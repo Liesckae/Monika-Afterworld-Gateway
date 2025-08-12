@@ -1,4 +1,3 @@
-# TODO: 更加细致的日志设置
 import logging
 
 logging.basicConfig(level = logging.DEBUG,

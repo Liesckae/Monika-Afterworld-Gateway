@@ -6,10 +6,10 @@ class Action(MetaBase):
     name = "TestAction"
     description = 'A testing action'
 
-    def check(self, ctx: dict) -> bool:
+    def check(self, ctx):
         return ctx.get('name') == "TestAction" 
+
     def execute(self):
-        print("Hello Monika!")
         logger.debug('Hello Monika!')
 
 

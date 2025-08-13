@@ -7,19 +7,27 @@ import random
 import time
 import pickle
 import os
+import sys
 
 # Registry for module enable/disable status (persistent)
 MODULE_STATUS_REGISTRY = {}
 TRIGGER_REGISTRY = {}
-MODULE_STATUS_FILE = os.path.join(os.path.dirname(__file__), 'Submods', 'Monika-Afterworld-Gateway','module_status.pkl')
+MODULE_STATUS_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))),'module_status.pkl')
 
 def load_module_status():
     """Load module status from file."""
     global MODULE_STATUS_REGISTRY
     if os.path.exists(MODULE_STATUS_FILE):
-        with open(MODULE_STATUS_FILE, 'rb') as f:
-            MODULE_STATUS_REGISTRY = pickle.load(f)
-            logger.debug('Status was loaded.')
+        try:
+            with open(MODULE_STATUS_FILE, 'rb') as f:
+                MODULE_STATUS_REGISTRY = pickle.load(f)
+                logger.debug('Status was loaded.')
+        except (EOFError, pickle.PickleError):
+            MODULE_STATUS_REGISTRY = {}
+            logger.warning('Failed to load module status; initializing empty registry.')
+    else:
+        MODULE_STATUS_REGISTRY = {}
+        logger.debug('No module status file found; initializing empty registry.')
 
 def save_module_status():
     """Save module status to file."""
@@ -44,12 +52,16 @@ class ModuleDaemon(Thread):
     def run(self):
         """Main monitoring loop"""
         # TODO: Implementing multi-threaded concurrency detection
-        # TODO: 添加执行次数抑制逻辑
+        
         while self.running:
             try:
                 logger.debug('ModuleDaemon polling registry (running=%s)', self.running)
                 for name, cls in MetaBase._registry.items():
                     logger.debug('Checking module: %s' % name)
+                    
+                    # DEBUG
+                    MetaBase.enable_module('test')
+                    
                     if MetaBase.is_module_enabled(name):
                         if cls.triggers:
                             # Ensure triggers is iterable
@@ -57,11 +69,13 @@ class ModuleDaemon(Thread):
                             logger.debug('Module %s has triggers: %s' % (name, triggers))
                             for trigger in triggers:
                                 logger.debug('Checking trigger for module %s' % name)
-                                if trigger(trigger_id='debug_trigger').check(None):
+                                if trigger(None).check(None):
                                     logger.debug('Trigger condition met for module %s, executing...' % name)
                                     cls.execute()
                                     logger.info(u'Module "%s" has been executed' % name)
                                     break
+                                else:
+                                    logger.debug('Trigger condition not met for module %s' % name)
                 logger.debug('ModuleDaemon sleeping for 5 seconds')
                 time.sleep(5)
                 logger.debug('ModuleDaemon woke up')
@@ -113,7 +127,12 @@ class MetaBase(object):
     description = None
     topic = None
     triggers = None
-    code_path = os.path.join(os.path.dirname(__file__), 'Submods', 'Monika-Afterworld-Gateway', 'mag_code', name+'.py')
+    
+    @classmethod
+    def get_code_path(cls):
+        mag_code_path = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..','mag_code'))
+        print('DEBUG: get_code_path() returned: %s' % mag_code_path)
+        return mag_code_path
 
     @classmethod
     def enable_module(cls, module_name):
@@ -130,18 +149,25 @@ class MetaBase(object):
     @classmethod
     def is_module_enabled(cls, module_name):
         """Check if a module is enabled."""
+        logger.debug('MODULE STATUS: %s' % MODULE_STATUS_REGISTRY)
         return MODULE_STATUS_REGISTRY.get(module_name, True)
 
     @classmethod
     def register_subclass(cls, subclass):
         if hasattr(subclass, 'triggers'):
             TRIGGER_REGISTRY[subclass.__name__] = subclass.triggers
+            
+    @classmethod
+    def process(cls):
+        '''Do something after execute method ends(Who knows what they will be doing)'''
+        pass
+    
     
     def execute(self):
         '''Default execution behaviour'''
         subprocess.Popen([sys.executable, self.code_path], stdout=sys.stdout, stderr=sys.stderr)
         logger.info("%s action executed" % self.name)
-        pass
+        
 
 class TriggerBase:
     '''Trigger condition base class'''
@@ -184,8 +210,9 @@ class EventTrigger(TriggerBase):
         return mas_ctx.event_mgr.is_triggered(self.trigger_id)
     
 class DebugTrigger(TriggerBase):
-    '''Return true when started'''
+    '''Return true when activated(I think this trigger is stupid but it's still useful)'''
     def check(self, mas_ctx):
+        logger.debug(u'Module is triggered by DebugTrigger')
         return True
 
 # Init the registry

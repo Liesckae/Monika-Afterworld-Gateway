@@ -16,7 +16,6 @@ init -989 python in mas.submod_utils:
     import os,sys
     import imp
     
-    # Force reload MetaBase to avoid cache issues
     if 'mag_scripts.meta' in sys.modules:
         imp.reload(sys.modules['mag_scripts.meta'])
     if 'mag_scripts.registry' in sys.modules:
@@ -34,14 +33,16 @@ init -989 python in mas.submod_utils:
     
     # Load modules from mag_scripts
     
-    store._mag_actions = get_actions()
+    if not hasattr(store, 'mag_utils'):
+        store.mag_utils = {}
+    store.mag_utils._mag_actions = get_actions()
     load_modules()
     
     # Set up
-    persistent.submods_mag_status = base.load_module_status()
-    persistent.submods_mag_actions = get_actions()
-    persistent.submods_mag_topics = get_topics()
-    persistent.submods_mod_switch = {}
+    persistent.mag_submods_status = base.load_module_status()
+    persistent.mag_submods_actions = get_actions()
+    persistent.mag_submods_topics = get_topics()
+    persistent.mag_submods_switch = {}
     
     for name in get_actions().keys():
         persistent.submods_mod_switch.setdefault(name,False)
@@ -117,7 +118,7 @@ screen basic_setting_screen():
                             spacing 5
                             
                             for name, cls in store._mag_actions.items():
-                                textbutton "[name]":
+                                textbutton "[name] description: [cls.description]":
                                     style "check_button"
                                     action ToggleDict(persistent.submods_mod_switch, name)
                                     hover_sound "mod_assets/sfx/hover.wav"

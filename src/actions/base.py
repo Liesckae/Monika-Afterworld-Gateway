@@ -158,28 +158,28 @@ class MetaBase(object):
         if hasattr(subclass, 'triggers'):
             TRIGGER_REGISTRY[subclass.__name__] = subclass.triggers
             
-    @classmethod
-    def process(cls):
-        '''Do something after execute method ends(Who knows what they will be doing)'''
-        pass
     
-    @classmethod
     def run(cls, file):
         '''Run run.bat with the given file in mag_code directory'''
         # Path to mag_code directory
-        bat_dir = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", "mag_code"))
-        bat_path = r'.\run.bat'  # Use relative path for batch file
+        bat_dir = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", "tools"))
+        bat_path = r'.\run.bat' 
 
         try:
-            # Run batch in mag_code directory
+            # Run batch in tools directory
             process = subprocess.Popen([bat_path, file], cwd=bat_dir, shell=True)
-            process.wait()  # Wait for completion
+            process.wait() 
         except Exception as e:
             logger.error("MAG failed to execute: %s" % e)
     
-    def execute(self):
-        '''Default execution behaviour'''
-        logger.info("%s action executed" % self.name)
+    # @classmethod
+    # def process(cls):
+    #     '''Do something after execute method ends(Who knows what they will be doing)'''
+    #     pass
+    
+    # def execute(self):
+    #     '''Default execution behaviour'''
+    #     logger.info("%s action executed" % self.name)
         
 
 class TriggerBase:

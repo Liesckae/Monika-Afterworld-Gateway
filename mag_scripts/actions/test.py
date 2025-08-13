@@ -19,25 +19,22 @@ class Action(MetaBase):
 
     @classmethod
     def execute(cls):
-        logger.debug(u'current path %s' %os.getcwd())
-        try:
-            logger.debug(u'%s execute path: %s' % (cls.name, cls.get_code_path()))
-            code_path = cls.get_code_path()+'/'+cls.name+'.py'
-            if os.path.exists(code_path):
-                logger.debug('code path exists')
-            else:
-                logger.error('code path not exists')
-                raise Exception("The code for action %s not exists"%cls.name)
-            logger.info(u'%s action executed' % cls.name)
-            subprocess.Popen([sys.executable, cls.get_code_path()+"/test.py"])
-            
-            
-            cls.enable_module(cls.name)
-        except Exception as e:
-            logger.error(u"execute error: %s" % str(e))
+        
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        gateway_root = os.path.abspath(os.path.join(current_dir, '..', '..'))
+        code_dir = os.path.join(gateway_root, 'mag_code')
+        code_path = os.path.join(code_dir, 'mag_test.py')
 
-            raise
-        finally:
-            logger.info(u"execute complete")
+        if not os.path.isdir(code_dir):
+            logger.error("mag_code directory not found: %s" % code_dir)
+            return
+        if not os.path.isfile(code_path):
+            logger.error("mag_test.py not found: %s" % code_path)
+            return
+
+        cls.run(code_path)
+
+            
+
 
 

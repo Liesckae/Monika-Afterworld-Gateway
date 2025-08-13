@@ -14,6 +14,7 @@ MODULE_STATUS_REGISTRY = {}
 TRIGGER_REGISTRY = {}
 MODULE_STATUS_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))),'module_status.pkl')
 
+
 def load_module_status():
     """Load module status from file."""
     global MODULE_STATUS_REGISTRY
@@ -162,10 +163,22 @@ class MetaBase(object):
         '''Do something after execute method ends(Who knows what they will be doing)'''
         pass
     
+    @classmethod
+    def run(cls, file):
+        '''Run run.bat with the given file in mag_code directory'''
+        # Path to mag_code directory
+        bat_dir = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", "mag_code"))
+        bat_path = r'.\run.bat'  # Use relative path for batch file
+
+        try:
+            # Run batch in mag_code directory
+            process = subprocess.Popen([bat_path, file], cwd=bat_dir, shell=True)
+            process.wait()  # Wait for completion
+        except Exception as e:
+            logger.error("MAG failed to execute: %s" % e)
     
     def execute(self):
         '''Default execution behaviour'''
-        subprocess.Popen([sys.executable, self.code_path], stdout=sys.stdout, stderr=sys.stderr)
         logger.info("%s action executed" % self.name)
         
 

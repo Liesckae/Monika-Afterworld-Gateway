@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 import configparser
 
@@ -26,3 +27,4 @@ MODULE_STATUS = {}
 MODULE_STATUS_FILE = os.path.join(ROOT_PATH, DATA_PATH, cfg.get('config', 'module_status_file'))
 
 TRIGGERS_REGISTRY = {}
+TRIGGER_TEMPLATES_REGISTRY = []

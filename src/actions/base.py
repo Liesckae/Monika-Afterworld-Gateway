@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from abc import ABC, abstractmethod
 from src.utils.logger import m_logger
 import src.utils.constants as constants
@@ -47,24 +48,68 @@ class ActionManager:
         """Get the available modules dictionary
 
         Returns:
-            dict{str: ActionBase}: A dictionary which contains name as key, and module as value
+            dict{str: Action}: A dictionary which contains name as key, and module as value
         """
         return ActionBase._module_registry
     
     def enable_module(self, module_name):
-        pass
+        """Enable a specific module in the registry
+
+        Args:
+            module_name (str): The name of the module
+
+        Returns:
+            bool: True if successful, false otherwise
+        """
+        if not module_name in self._registry:
+            return False
+        self._registry[module_name].is_abled = True
+        return True
     
     def disable_module(self, module_name):
-        pass
+        """Disable a specific module in the registry
+
+        Args:
+            module_name (str): The name of the module
+
+        Returns:
+            bool: True if successful, false otherwise
+        """
+        if not module_name in self._registry:
+            return False
+        self._registry[module_name].is_abled = False
+        return True
     
     def is_module_enabled(self, module_name):
-        pass
+        """Check if module is enable
+
+        Args:
+            module_name (name): The name of the module
+
+        Returns:
+            bool: Status of the module (True or False)
+            None: If module_name is not found
+        """
+        if not module_name in self._registry:
+            return None
+        return self._registry[module_name].is_abled
     
     def remove_module(self, module_name):
-        pass
+        """Remove a specific module in the registry
+
+        Args:
+            module_name (str): The name of the module
+
+        Returns:
+            bool: True if successful, false otherwise
+        """
+        if not module_name in self._registry:
+            return False
+        self._registry.pop(module_name)
+        return True
     
     def add_module(self, module):
         pass
     
     def refresh_registry(self):
-        pass
+        self._registry = ActionBase._module_registry

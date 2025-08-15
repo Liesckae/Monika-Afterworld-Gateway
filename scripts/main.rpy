@@ -6,3 +6,6 @@ init -990 python:
         version='0.0.1',
         settings_pane="main_settings_pane"
     )
+
+init -989 python in mas.submod_utils:
+    

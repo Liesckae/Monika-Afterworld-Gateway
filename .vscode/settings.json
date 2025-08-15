@@ -126,5 +126,6 @@
                 }
             }
         ]
-    }
+    },
+    "renpyWarp.sdkPath": "f:\\renpy1"
 }

@@ -20,10 +20,11 @@ import src.utils.constants as constants
 #             m_logger.info('Trigger <{}> successfully registered.'.format(cls_name))
 #         return cls
 
-
 class TriggerBase(object):
     
     _trigger_registry = constants.TRIGGERS_REGISTRY
+    
+    type = 'base trigger'
     
     def __init__(self, name, desc=''):
         """Initialize when the subclass is instantiates
@@ -49,7 +50,7 @@ class TriggerBase(object):
 
     @abstractmethod
     def execute(self, ctx):
-        pass
+        m_logger.info("trigger was triggered: name - > {} | type-> {}".format(self.name, self.type))
 
 
     

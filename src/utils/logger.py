@@ -26,11 +26,11 @@ class LoggerManager:
                 m_logger.error("Can not create log path. {}".format(e))
                 
         self._loggers = {}
-        self.add_logger(m_logger)
-        self.add_logger(logger)
+        self.register_logger(m_logger)
+        self.register_logger(logger)
         
-    def add_logger(self, logger):
-        """Add logger instance to logging registry
+    def register_logger(self, logger):
+        """register logger instance to logging registry
 
         Args:
             logger (logging.logger):  You know
@@ -42,6 +42,12 @@ class LoggerManager:
             return False
         self._loggers.update({str(logger.name): logger})
         return True
+    
+    def getlogger(self, logger_name):
+        if not logger_name is None:
+            return logging.getLogger(logger_name)
+        else:
+            return None
         
     def remove_logger(self, logger_name):
         """Remove a logger from logging registry
@@ -57,7 +63,7 @@ class LoggerManager:
         del self._loggers[logger_name]
         return True
     
-    def get_loggers(self):
+    def get_loggers_registry(self):
         """Get all available loggers
 
         Returns:
@@ -79,3 +85,9 @@ class LoggerManager:
         if not logger_name in self._loggers:
             return None
         return self._loggers[logger_name]
+    
+a = LoggerManager()
+def get_logger_manager():
+    return a
+
+    

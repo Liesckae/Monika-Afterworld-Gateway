@@ -15,7 +15,7 @@ LOG_PATH = cfg.get('paths', 'log_dir')
 SRC_PATH = cfg.get('paths', 'src_dir')
 TOOLS_PATH = cfg.get('paths', 'tools_dir')
 TRIGGERS_PATH = cfg.get('paths', 'triggers_dir')
-
+PATH = [DATA_PATH, SCRIPTS_PATH, LOG_PATH, SRC_PATH, TOOLS_PATH, TRIGGERS_PATH]
 
 LOGGERS_REGISTRY = {}
 LOGGER_LEVEL = cfg.get('logger', 'logging_level')

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from abc import ABC, abstractmethod
 from src.utils.logger import m_logger
+import src.utils.file_ops as file_ops
 import src.utils.constants as constants
 
 class ActionBaseMeta(type):
@@ -23,11 +24,11 @@ class ActionBaseMeta(type):
 
             return cls
 
-class ActionBase:
+class ActionBase(ABC):
     
     __metaclass__ = ActionBaseMeta
     
-    _module_registry = constants.MODULE_REGISTRY
+    _module_registry = {}
     
     name = ''
     description = ''
@@ -42,6 +43,7 @@ class ActionBase:
 class ActionManager:
 
     def __init__(self):
+        self._module_registry = {}
         self.refresh_registry()
         
     def get_module_registry(self):
@@ -61,9 +63,9 @@ class ActionManager:
         Returns:
             bool: True if successful, false otherwise
         """
-        if not module_name in self._registry:
+        if not module_name in ActionBase._module_registry:
             return False
-        self._registry[module_name].is_abled = True
+        ActionBase._module_registry[module_name].is_abled = True
         return True
     
     def disable_module(self, module_name):
@@ -75,9 +77,9 @@ class ActionManager:
         Returns:
             bool: True if successful, false otherwise
         """
-        if not module_name in self._registry:
+        if not module_name in ActionBase._module_registry:
             return False
-        self._registry[module_name].is_abled = False
+        ActionBase._module_registry[module_name].is_abled = False
         return True
     
     def is_module_enabled(self, module_name):
@@ -90,9 +92,9 @@ class ActionManager:
             bool: Status of the module (True or False)
             None: If module_name is not found
         """
-        if not module_name in self._registry:
+        if not module_name in ActionBase._module_registry:
             return None
-        return self._registry[module_name].is_abled
+        return ActionBase._module_registry[module_name].is_abled
     
     def remove_module(self, module_name):
         """Remove a specific module in the registry
@@ -103,13 +105,35 @@ class ActionManager:
         Returns:
             bool: True if successful, false otherwise
         """
-        if not module_name in self._registry:
+        if not module_name in ActionBase._module_registry:
             return False
-        self._registry.pop(module_name)
+        ActionBase._module_registry.pop(module_name)
         return True
     
-    def add_module(self, module):
-        pass
+    def add_module(self, cls):
+        """Add a new module in the registry
+
+        Args:
+            cls (ActionBase): The instance of the new module
+
+        Returns:
+            bool: True if operation is done without errors, and False otherwise.
+        """
+        if cls.name in ActionBase._module_registry:
+            return False
+        ActionBase._module_registry.update({cls.name: cls})
+        return True
     
+    def get_status(self):
+        """get the status of the action
+        
+        Returns:
+            dict: {str, bool} action status
+        """
+        return {cls.name: cls.is_abled() for name, cls in self._module_registry}
+    
+    def set_status(self, module_name, module_status):
+        pass
+        
     def refresh_registry(self):
-        self._registry = ActionBase._module_registry
+        self._module_registry = file_ops.read_module_status()

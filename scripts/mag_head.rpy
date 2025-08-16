@@ -7,20 +7,11 @@ init -990 python:
         settings_pane="dp_settings_pane"
     )
 
-init -989 python in mas.submod_utils:
-    # 初始化这一块
-    import mag.modules.base
-    import os,sys
-    import importlib
-    import renpy
-    import renpy.loader as loader
-    import renpy.store as store
-    import logging
-    import mag
+init -980 python in mas.submod_utils:
     from mag.core.core import init
-
+    import renpy.store as store
     m_logger, tm, mm, daemon = init("main", 30)
-
+    mm.refresh_module_registry()
     store.mag_mm = mm
 
 init python:

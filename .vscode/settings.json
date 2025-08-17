@@ -1,0 +1,15 @@
+{
+    "files.exclude": {
+        "**/.vscode": true,
+        "**/*.rpyc": true,
+        "**/*.rpa": true,
+        "**/*.rpymc": true,
+        "**/cache/": true
+    },
+    "renpyWarp.sdkPath": "c:\\Users\\admin\\AppData\\Roaming\\Code\\User\\globalStorage\\paisleysoftworks.renpywarp\\file-downloader-downloads\\6.99.4",
+    "python.defaultInterpreterPath": "E:\\DDLCt\\MRG\\lib\\windows-i686\\python.exe",
+    "python.analysis.extraPaths": [
+        "E:\\DDLCt\\MRG",
+
+    ],
+}

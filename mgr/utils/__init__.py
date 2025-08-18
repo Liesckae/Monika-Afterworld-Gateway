@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# 工具包的初始化文件，包含模块状态管理、路径检查和线程管理等功能
 from __future__ import print_function, unicode_literals
 import os
 import constants
@@ -18,6 +19,7 @@ _LOCK = threading.Lock()
 _SAVE_LOCK = threading.Lock()
 
 def check_path(path):
+    # 检查路径是否存在，不存在则创建
     import mgr.logger as logger
 
     if not os.path.exists(path):
@@ -29,24 +31,30 @@ def check_path(path):
     logger.m_logger.info("Dir {0} check passed.".format(path))
     
 def auto_check_path():
+    # 自动检查所有路径
     for path in constants.PATH:
         check_path(path)
 
 def get_default_logger():
+    # 获取默认日志记录器
     import mgr.logger as logger
 
     return logger.m_logger
 
 def get_module_registry():
+    # 获取模块注册表
     return constants._module_registry
 
 def get_trigger_registry():
+    # 获取触发器注册表
     return constants._trigger_registry
 
 def load_triggers():
+    # 加载所有触发器
     importlib.import_module(constants.triggers_path)
 
 def load_module_status():
+    # 加载模块状态
     global _module_status
     if not os.path.isfile(_STATUS_FILE) or os.path.getsize(_STATUS_FILE) == 0:
         _module_status = {name: mod.is_enable
@@ -66,6 +74,7 @@ def load_module_status():
     return _module_status
 
 def save_module_status():
+    # 保存模块状态
     with _SAVE_LOCK:
         tmp = _STATUS_FILE + '.tmp'
         try:
@@ -80,9 +89,11 @@ def save_module_status():
             raise
 
 def get_module_status():
+    # 获取模块状态
     return _module_status
 
 def reload_module_status():
+    # 重新加载模块状态
     global _module_status
     registry = get_module_registry()
     status_keys = set(_module_status)
@@ -98,6 +109,7 @@ def reload_module_status():
         save_module_status()
 
 def load_modules():
+    # 加载所有模块
     base_path = os.path.join(os.getcwd(), 'game', 'python-packages', 'mgr', 'modules')
     if not os.path.isdir(base_path):
         raise Exception("mgr/modules 目录不存在: {}".format(base_path))
@@ -118,6 +130,7 @@ def load_modules():
             get_default_logger().exception('load module %s failed: %s', modname, e)
         
 def auto_load_modules():
+    # 自动加载所有模块
     load_triggers()
     load_modules()
     reload_module_status()
@@ -145,6 +158,7 @@ def stop_thread(name, timeout=5):
             get_default_logger().warning('%s not running', name)
             
 def set_module_status(name, enabled):
+    # 设置模块状态
     global _module_status
     _module_status[name] = bool(enabled)
     save_module_status()

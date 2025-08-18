@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# 随机触发器，基于概率触发
 from __future__ import print_function, unicode_literals
 import base
 import random
@@ -14,6 +15,7 @@ class RandomTrigger(base.Base):
             desc (str, optional): Description of this instance. Defaults to ''.
             probability (int, optional): The probability (0 - 1.0) that the trigger should execute.Defaults to 0.
         """
+        # 初始化随机触发器
         super().__init__(name, desc)
         self.probability = probability
         
@@ -23,6 +25,7 @@ class RandomTrigger(base.Base):
         Returns:
             bool: True if meet the condition; False if not
         """
+        # 基于概率检查是否满足触发条件
         return random.random() < self.probability
 
     

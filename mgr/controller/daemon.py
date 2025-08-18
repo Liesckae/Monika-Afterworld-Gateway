@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# 守护线程和守护线程管理器的实现
 from __future__ import print_function, unicode_literals
 import threading
 
@@ -8,6 +9,7 @@ __all__ = ['DaemonThread', 'DaemonManager']
 lock = threading.Lock()
 
 class DaemonThread(threading.Thread):
+    # 守护线程类，用于执行模块任务
     def __init__(self, name, module, interval=10):
         import mgr.utils as utils
         threading.Thread.__init__(self)
@@ -22,6 +24,7 @@ class DaemonThread(threading.Thread):
         self.is_running = False
         
     def run(self):
+        # 线程运行逻辑，定期检查触发器并执行模块任务
         while not getattr(self.stopFlag, 'is_set', self.stopFlag.isSet)():
             if not self.is_enable:
                 self.stopFlag.wait(self.interval)
@@ -37,12 +40,15 @@ class DaemonThread(threading.Thread):
                                 
         
     def stop(self):
+        # 停止线程
         self.stopFlag.set()
     
     def __del__(self):
+        # 线程销毁时记录日志
         self.logger.info('{} daemon thread quit.'.format(self.name))
     
 class DaemonManager:
+    # 守护线程管理器，用于管理多个守护线程
     def __init__(self, _module_registry, interval=10):
         import mgr.utils as utils
         
@@ -62,6 +68,7 @@ class DaemonManager:
             
         utils.get_default_logger().debug('daemon threads started.')
     def run_all(self):
+        # 启动所有模块的守护线程
         running_modules = []
         for name in self._module_registry.keys():
             if name not in self._threads.keys() and self.status.get(name):
@@ -72,7 +79,7 @@ class DaemonManager:
         
             
     def stop_all(self):
-        
+        # 停止所有守护线程
         for t in self._threads.values():
             t.stop()
         for t in self._threads.values():
@@ -81,6 +88,7 @@ class DaemonManager:
         self._threads.clear()
         
     def remove_module(self, module_name):
+        # 移除指定模块的守护线程
         import mgr.utils as utils
         
         if not module_name in self._threads.keys():
@@ -90,6 +98,7 @@ class DaemonManager:
         utils.set_module_status(module_name, False)
         
     def reload_all(self):
+        # 重新加载所有模块状态并重启线程
         import mgr.utils as utils
         
         self.stop_all()
@@ -97,9 +106,11 @@ class DaemonManager:
         self.run_all()
         
     def start(self):
+        # 启动所有线程
         self.run_all()
         
     def reload_all_modules(self, module_registry, module_status):
+        # 重新加载模块注册表和状态
         self._module_registry = module_registry
         self.status = module_status
         self.reload_all()

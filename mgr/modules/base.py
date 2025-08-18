@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# 模块基类，定义了模块的基本结构和注册逻辑
 from __future__ import print_function, unicode_literals
 from datetime import datetime
 import logging
@@ -6,6 +7,7 @@ import logging
 
 
 class BaseMeta(type):
+    # 元类，用于自动注册模块
     def __new__(cls, clsname, bases, clsdict):
         # Py2.7 写法：super 必须带参数
         new_cls = super(BaseMeta, cls).__new__(cls, clsname, bases, clsdict)
@@ -16,7 +18,7 @@ class BaseMeta(type):
         
 
 class Base(object):
-    # Base类本身没什么可写的，只需要继承这个类即可，具体怎么实现看各个子模块怎么写
+    # 模块基类，所有模块应继承此类
     __metaclass__ = BaseMeta
     
     name = ""
@@ -28,6 +30,7 @@ class Base(object):
     is_enable = True        # 默认启用
     
     def __init__(self):
+        # 初始化模块属性
         self.name = self.__class__.name
         self.desc = self.__class__.desc
         self.tags = list(self.__class__.tags or [])
@@ -36,13 +39,15 @@ class Base(object):
         self._args = None  # 存储传递给execute的参数
     
     def execute(self, *args, **kwargs):
-        # 这是每个模块的执行入口，调用之前先把参数传递进来
+        # 模块执行入口，子类需实现此方法
         pass
     
     def get_runtime_args(self):
+        # 获取运行时参数
         return (datetime.now,), {}
     
     def _register(self):
+        # 注册模块到全局注册表
         if self.__class__.__name__ == 'Base':
             return
         import mgr.utils.constants as c

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# 常量定义文件，包括路径、注册表和配置项
 from __future__ import print_function, unicode_literals
 import os
 import ConfigParser

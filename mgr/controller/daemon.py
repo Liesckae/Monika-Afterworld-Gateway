@@ -77,5 +77,14 @@ class DaemonManager:
             raise ValueError('%s module does not exists.' % module_name)
         self._threads[module_name].stop()
         self._threads[module_name].join()
+        utils.set_module_status(name, False)
+        
+    def reload_all(self):
+        self.stop_all()
+        utils.reload_module_status()
+        self.run_all()
+        
+    def start(self):
+        self.run_all()
         
         

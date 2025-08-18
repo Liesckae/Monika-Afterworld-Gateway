@@ -67,6 +67,7 @@ def get_module_status():
     return _module_status
 
 def reload_module_status():
+    global _module_status
     registry = get_module_registry()
     status_keys = set(_module_status)
     registry_keys = set(registry)
@@ -126,3 +127,8 @@ def stop_thread(name, timeout=5):
             get_default_logger().info('%s DaemonThread stopped', name)
         else:
             get_default_logger().warning('%s not running', name)
+            
+def set_module_status(name, enabled):
+    global _module_status
+    _module_status[name] = bool(enabled)
+    save_module_status()

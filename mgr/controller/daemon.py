@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, unicode_literals
 import threading
-import mgr.utils as utils
+
 
 __all__ = ['DaemonThread', 'DaemonManager']
 
@@ -9,6 +9,7 @@ lock = threading.Lock()
 
 class DaemonThread(threading.Thread):
     def __init__(self, name, module, interval=10):
+        import mgr.utils as utils
         threading.Thread.__init__(self)
         self.name = name
         self.interval = interval
@@ -43,6 +44,8 @@ class DaemonThread(threading.Thread):
     
 class DaemonManager:
     def __init__(self, _module_registry, interval=10):
+        import mgr.utils as utils
+        
         self._module_registry = _module_registry
         self.interval = interval
         self._threads = {}
@@ -57,6 +60,7 @@ class DaemonManager:
                 except RuntimeError as e:
                     utils.get_default_logger().exception("start thread %s failed: %s", name, e)
             
+        utils.get_default_logger().debug('daemon threads started.')
     def run_all(self):
         running_modules = []
         for name in self._module_registry.keys():
@@ -77,6 +81,8 @@ class DaemonManager:
         self._threads.clear()
         
     def remove_module(self, module_name):
+        import mgr.utils as utils
+        
         if not module_name in self._threads.keys():
             raise ValueError('%s module does not exists.' % module_name)
         self._threads[module_name].stop()
@@ -84,6 +90,8 @@ class DaemonManager:
         utils.set_module_status(module_name, False)
         
     def reload_all(self):
+        import mgr.utils as utils
+        
         self.stop_all()
         utils.reload_module_status()
         self.run_all()

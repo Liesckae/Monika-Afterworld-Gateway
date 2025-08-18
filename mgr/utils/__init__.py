@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, unicode_literals
 import os
-import logger
 import constants
 import pkgutil
 import importlib
@@ -19,6 +18,8 @@ _LOCK = threading.Lock()
 _SAVE_LOCK = threading.Lock()
 
 def check_path(path):
+    import mgr.logger as logger
+
     if not os.path.exists(path):
         try:
             os.makedirs(path)
@@ -32,6 +33,8 @@ def auto_check_path():
         check_path(path)
 
 def get_default_logger():
+    import mgr.logger as logger
+
     return logger.m_logger
 
 def get_module_registry():

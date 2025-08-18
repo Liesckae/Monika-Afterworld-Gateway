@@ -1,14 +1,6 @@
-# ======================================================
-#  Monika-Afterworld-Gateway  精简启动脚本
-# ======================================================
-
-# 0. 子模组元数据（Ren'Py 会在设置页自动展示）
 init -990 python:
     import os, sys
-    # 让 Python 2.7 能找到后端
-    sys.path.insert(0, os.path.join(config.gamedir, "Submods", "Monika's-Real-Gate", "python-packages"))
-
-    # 注册子模组（MAS ≥0.12 写法）
+    sys.path.insert(0, os.path.join(config.gamedir, "Submods", "Monika's-Real-Gate"))
     store.mas_submod_utils.Submod(
         author="Nullblock",
         name="Monika afterworld gateway",
@@ -20,33 +12,31 @@ init -990 python:
         settings_pane="dp_setting_pane"
     )
 
-# 1. 后端初始化（只跑一次）
-init -980 python:
-    from mgr.core.core import init
-    from mgr.controller.daemon import DaemonManager
+init -989 python:
+    import mgr
+    import os
 
-    # 初始化核心：返回 (logger, TriggerManager, DaemonManager)
+# 1. 后端初始化
+init -980 python:
+    import mgr.utils
+    from mgr.core.core import init
     mag_logger, mag_tm, mag_dm = init("main", interval=30)
 
-    # 注册并启用测试模块
-    mag_tm.set_status('test_action', True)
-    mag_tm.refresh_module_registry()
 
-    # 把 registry 与 status 同步到 DaemonManager
+    mag_tm.set_status('test', True)
     mag_dm.reload_all_modules(
         mag_tm.get_module_registry(),
         mag_tm.get_status()
     )
     mag_dm.start()
 
-    # 导出到 Ren’Py 全局 store，方便 UI 调用
     store.mag_logger = mag_logger
     store.mag_tm     = mag_tm
     store.mag_dm     = mag_dm
 
 # 2. UI 用到的工具函数
 init python:
-    # 开关模块（不重启 Ren’Py）
+    # 开关模块
     def _mag_toggle(name):
         if mag_tm.get_status().get(name, False):
             mag_tm.set_status(name, False)
@@ -57,12 +47,12 @@ init python:
     def mag_status(flag):
         return ">启用" if flag else ">禁用"
 
-# 3. 保存默认值（示例）
+# 3. 保存默认值
 default persistent.mag_cloud_sync  = False
 default persistent.mag_show_stats  = False
 default persistent.mag_horror_mode = False
 
-# 4. 设置界面（保持原 UI，仅引用上面函数）
+# 4. 设置界面
 screen dp_setting_pane():
     vbox:
         style_prefix "check"
@@ -125,13 +115,17 @@ screen dp_module_settings():
                         hbox:
                             xpos 20
                             spacing 10
-                            text "{} [{}]".format(name, "ON" if enabled else "OFF")
-                            textbutton _("开关") action Function(_mag_toggle, name)
+                            text "[name]" xalign 0.0
+                            python:
+                                status = ">启用" if enabled else ">禁用"
+                            text status xalign 0.5 xsize 80
+                            textbutton _("启用") selected enabled action Function(_mag_toggle, name)
+                            textbutton _("禁用") selected (not enabled) action Function(_mag_toggle, name)
 
             hbox:
                 xalign 0.5
                 spacing 100
-                textbutton "返回" action Hide("dp_module_settings")
+                textbutton _("返回") action Hide("dp_module_settings")
 
 screen dp_basic_settings():
     tag gateway_basic

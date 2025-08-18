@@ -2,3 +2,5 @@ logs/
 libRich/
 todo.md
 *.bak
+*.pyo
+*.pyc

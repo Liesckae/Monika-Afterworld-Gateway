@@ -7,21 +7,31 @@ from datetime import datetime
 from ..controller.daemon import DaemonManager
 from .. import utils
 
+import logging
+
 class Core(object):
     _lock = threading.Lock()
     _instance = None
 
     def __new__(cls):
+        utils.get_default_logger().debug("init mgr.core.")
+
+        
         if cls._instance is None:
             cls._instance = super(Core, cls).__new__(cls)
         return cls._instance
 
     def __init__(self, log_prefix="mag", interval=30):
+        
+        
         if getattr(self, '_inited', False):
             return
         self._inited = True
         self.logger = utils.get_default_logger()
         self.dm = DaemonManager(utils.get_module_registry(), interval)
+        
+        utils.get_default_logger().info("Core created DaemonManager with %d modules", len(self.dm._threads))
+        self.logger.info("registry keys before DaemonManager: %s", list(utils.get_module_registry().keys()))
 
     def reload_all(self):
         with self._lock:
@@ -62,5 +72,8 @@ class Core(object):
 
 # 单例暴露
 def init(log_prefix="mag", interval=30):
+    utils.get_default_logger().debug("init module mgr.")
+
+    
     core = Core()
     return core.logger, core, core.dm

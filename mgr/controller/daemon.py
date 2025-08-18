@@ -19,15 +19,15 @@ class DaemonThread(threading.Thread):
     def run(self):
         while not getattr(self.stopFlag, 'is_set', self.stopFlag.isSet)():
             if not self.is_enable:
-                self.stopFlag.wait(self.interval)   # 可中断 sleep
+                self.stopFlag.wait(self.interval)
                 continue
 
-            args, kwargs = self.module.get_runtime_args()
-            if all(t.is_match() for t in self.triggers):
-                try:
+            try:
+                args, kwargs = self.module.get_runtime_args() or ((), {})
+                if all(t.is_match() for t in self.triggers):
                     self.module.execute(*args, **kwargs)
-                except Exception as e:
-                    self.logger.exception("%s error: %s", self.name, e)
+            except Exception as e:
+                self.logger.exception("%s error: %s", self.name, e)
             self.stopFlag.wait(self.interval)
                                 
         
@@ -43,11 +43,15 @@ class DaemonManager:
         self.interval = interval
         self._threads = {}
         self.status = utils.load_module_status()
+
         for name, module in _module_registry.items():
             if self.status.get(name):
-                thread = DaemonThread(name, module, self.interval)
-                self._threads[name] = thread
-                self._threads[name].start()
+                try:
+                    thread = DaemonThread(name, module, self.interval)
+                    thread.start()
+                    self._threads[name] = thread
+                except RuntimeError as e:
+                    utils.get_default_logger().exception("start thread %s failed: %s", name, e)
             
     def run_all(self):
         running_modules = []

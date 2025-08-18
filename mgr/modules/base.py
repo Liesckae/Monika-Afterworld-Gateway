@@ -21,7 +21,7 @@ class Base:
     desc = ""
     tags = None
     topics = None
-    triggers = []       # 触发器列表，当所有触发器的check方法都返回true时，将执行模块的执行入口，名字不是必填的，
+    triggers = None     # 触发器列表，当所有触发器的check方法都返回true时，将执行模块的执行入口，名字不是必填的，
                         # 但是为了能找到触发器，建议填写
     is_enable = True        # 默认启用
     

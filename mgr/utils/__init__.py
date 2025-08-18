@@ -13,7 +13,8 @@ _STATUS_FILE = os.path.join(constants.util_path, 'module_status.json')
 _module_status = {}
 
 _THREADS = {}
-_LOCK    = threading.Lock()
+_LOCK = threading.Lock()
+_SAVE_LOCK = threading.Lock()
 
 def check_path(path):
     if not os.path.exists(path):
@@ -47,6 +48,7 @@ def load_module_status():
                           for name, mod in get_module_registry().items()}
         # 目录不存在则自动创建
         os.makedirs(os.path.dirname(_STATUS_FILE), exist_ok=True)
+        _module_status = {name: mod.is_enable for name, mod in get_module_registry().items()}
         with open(_STATUS_FILE, 'w') as f:
             json.dump(_module_status, f, indent=2)
     else:
@@ -55,10 +57,11 @@ def load_module_status():
     return _module_status
 
 def save_module_status():
-    os.makedirs(os.path.dirname(_STATUS_FILE), exist_ok=True)
-    with open(_STATUS_FILE, 'w') as f:
-        json.dump(_module_status, f, indent=2)
-    logger.m_logger.info("module_status.json saved")
+    with _SAVE_LOCK:
+        tmp = _STATUS_FILE + '.tmp'
+        with open(tmp, 'w') as f:
+            json.dump(_module_status, f, indent=2)
+        os.rename(tmp, _STATUS_FILE)
 
 def get_module_status():
     return _module_status
@@ -95,7 +98,7 @@ def load_modules():
             importlib.import_module(modname)
             
         except Exception as e:
-            raise Exception('load module fail: ' + modname)
+            get_default_logger().exception('load module %s failed: %s', modname, e)
         
 def auto_load_modules():
     load_triggers()

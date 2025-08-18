@@ -3,6 +3,17 @@ import logger
 import constants
 import pkgutil
 import importlib
+import json
+import threading
+
+from controller.daemon import DaemonThread
+
+
+_STATUS_FILE = os.path.join(constants.util_path, 'module_status.json')
+_module_status = {}
+
+_THREADS = {}
+_LOCK    = threading.Lock()
 
 def check_path(path):
     if not os.path.exists(path):
@@ -29,11 +40,47 @@ def get_trigger_registry():
 def load_triggers():
     importlib.import_module(constants.triggers_path)
 
+def load_module_status():
+    global _module_status
+    if not os.path.isfile(_STATUS_FILE) or os.path.getsize(_STATUS_FILE) == 0:
+        _module_status = {name: mod.is_enable
+                          for name, mod in get_module_registry().items()}
+        # 目录不存在则自动创建
+        os.makedirs(os.path.dirname(_STATUS_FILE), exist_ok=True)
+        with open(_STATUS_FILE, 'w') as f:
+            json.dump(_module_status, f, indent=2)
+    else:
+        with open(_STATUS_FILE, 'r') as f:
+            _module_status = json.load(f)
+    return _module_status
+
+def save_module_status():
+    os.makedirs(os.path.dirname(_STATUS_FILE), exist_ok=True)
+    with open(_STATUS_FILE, 'w') as f:
+        json.dump(_module_status, f, indent=2)
+    logger.m_logger.info("module_status.json saved")
+
+def get_module_status():
+    return _module_status
+
+def reload_module_status():
+    registry = get_module_registry()
+    status_keys = set(_module_status)
+    registry_keys = set(registry)
+    
+    for key in registry_keys - status_keys:
+        _module_status[key] = registry[key].is_enable
+
+    for key in status_keys - registry_keys:
+        _module_status.pop(key, None)
+        
+    if (status_keys ^ registry_keys):
+        save_module_status()
+
 def load_modules():
     base_path = os.path.join(os.getcwd(), 'game', 'python-packages', 'mgr', 'modules')
     if not os.path.isdir(base_path):
         raise Exception("mgr/modules 目录不存在: {}".format(base_path))
-        return
 
     # 把目录拼成包名
     pkg_name = 'mgr.modules'
@@ -49,6 +96,30 @@ def load_modules():
             
         except Exception as e:
             raise Exception('load module fail: ' + modname)
+        
 def auto_load_modules():
     load_triggers()
     load_modules()
+    reload_module_status()
+    
+def start_thread(name, module, interval=10):
+    """手动启动单个模块线程"""
+    with _LOCK:
+        if name in _THREADS and _THREADS[name].is_alive():
+            get_default_logger().warning('%s already running', name)
+            return
+        t = DaemonThread(module.name, module, interval)
+        t.start()
+        _THREADS[name] = t
+        get_default_logger().info('%s thread started', name)
+        
+def stop_thread(name, timeout=5):
+    """安全停止单个 DaemonThread"""
+    with _LOCK:
+        t = _THREADS.pop(name, None)
+        if t and t.is_alive():
+            t.stop()
+            t.join(timeout)
+            get_default_logger().info('%s DaemonThread stopped', name)
+        else:
+            get_default_logger().warning('%s not running', name)

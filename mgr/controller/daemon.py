@@ -1,67 +1,77 @@
 import threading
-from time import sleep
 import utils
 
 lock = threading.Lock()
 
 class DaemonThread(threading.Thread):
-    def __init__(self, name, module, interval=10, *args, **kw):
+    def __init__(self, name, module, interval=10):
         threading.Thread.__init__(self)
-        self.stopFlag = False
         self.name = name
         self.interval = interval
         self.module = module
-        self.args = args
-        self.kw = kw
         self.daemon = True
-        self.stopFlag = False
         self.triggers = module.triggers
         self.logger = utils.get_default_logger()
+        self.stopFlag = threading.Event()
         self.is_enable = module.is_enable
+        self.is_running = False
         
     def run(self):
-        list = []
-        if self.is_enable:
-            while not self.stopFlag:
-                lock.acquire()
-                
-                for trigger in self.triggers:
-                    list.append(trigger.is_match)
-                
-                if all(list):
-                    self.module.execute(self.module.args)
-                
-                sleep(self.interval)
-                lock.release()
+        while not getattr(self.stopFlag, 'is_set', self.stopFlag.isSet)():
+            if not self.is_enable:
+                self.stopFlag.wait(self.interval)   # 可中断 sleep
+                continue
+
+            args, kwargs = self.module.get_runtime_args()
+            if all(t.is_match() for t in self.triggers):
+                try:
+                    self.module.execute(*args, **kwargs)
+                except Exception as e:
+                    self.logger.exception("%s error: %s", self.name, e)
+            self.stopFlag.wait(self.interval)
+                                
         
     def stop(self):
-        self.stopFlag = True
+        self.stopFlag.set()
     
     def __del__(self):
-        pass
+        self.logger.info('{} daemon thread quit.'.format(self.name))
     
 class DaemonManager:
-    def __init__(self, _module_registry, intervel=10):
-        self.intervel = intervel
-        self._treads = {}
+    def __init__(self, _module_registry, interval=10):
+        self._module_registry = _module_registry
+        self.interval = interval
+        self._threads = {}
+        self.status = utils.load_module_status()
         for name, module in _module_registry.items():
-            DaemonThread(name, module, self.intervel).start()
-            self._treads[name] = module
+            if self.status.get(name):
+                thread = DaemonThread(name, module, self.interval)
+                self._threads[name] = thread
+                self._threads[name].start()
             
-    def start_all(self):
-        for name, t in self._treads.items():
-            t.start()
+    def run_all(self):
+        running_modules = []
+        for name in self._module_registry.keys():
+            if name not in self._threads.keys() and self.status.get(name):
+                thread = DaemonThread(name, self._module_registry[name], self.interval)
+                self._threads[name] = thread
+                thread.start()
+                running_modules.append(name)
+        
+            
     def stop_all(self):
-        for name, t in self._treads.items():
+        
+        for t in self._threads.values():
             t.stop()
-    def disable(self, name):
-        if name in self._treads.keys():
-            self._treads[name].stop()
-            self._treads.is_enable = False
-    def add_daemon(self):
-        pass
-    def del_daemon(self, daemon_name):
-        pass
-    def __del__(self):
-        pass
-    
+        for t in self._threads.values():
+            t.join()
+            
+        self._threads.clear()
+        
+    def remove_module(self, module_name):
+        if not module_name in self._threads.keys():
+            raise ValueError('%s module does not exists.' % module_name)
+        self._threads[module_name].stop()
+        self._threads[module_name].join()
+        
+        

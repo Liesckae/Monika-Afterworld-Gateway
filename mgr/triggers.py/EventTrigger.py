@@ -28,7 +28,7 @@ class CooldownTrigger(base.Base):
     type = 'CooldownTrigger'
 
     def __init__(self, name, desc='', threshold=3, cooldown=30):
-        super(base.Base, self).__init__(name, )
+        super(base.Base, self).__init__(name, desc)
         self.threshold = threshold
         self.cooldown = cooldown
         self._count = 0

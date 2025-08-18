@@ -8,7 +8,7 @@ import importlib
 import json
 import threading
 
-from controller.daemon import DaemonThread
+import mgr.controller.daemon
 
 
 _STATUS_FILE = os.path.join(constants.util_path, 'module_status.json')
@@ -49,7 +49,11 @@ def load_module_status():
         _module_status = {name: mod.is_enable
                           for name, mod in get_module_registry().items()}
         # 目录不存在则自动创建
-        os.makedirs(os.path.dirname(_STATUS_FILE), exist_ok=True)
+        try:
+            os.makedirs(os.path.dirname(_STATUS_FILE))
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
         _module_status = {name: mod.is_enable for name, mod in get_module_registry().items()}
         with open(_STATUS_FILE, 'w') as f:
             json.dump(_module_status, f, indent=2)
@@ -61,9 +65,16 @@ def load_module_status():
 def save_module_status():
     with _SAVE_LOCK:
         tmp = _STATUS_FILE + '.tmp'
-        with open(tmp, 'w') as f:
-            json.dump(_module_status, f, indent=2)
-        os.rename(tmp, _STATUS_FILE)
+        try:
+            with open(tmp, 'w') as f:
+                json.dump(_module_status, f, indent=2)
+            if os.path.exists(_STATUS_FILE):
+                os.remove(_STATUS_FILE)
+            os.rename(tmp, _STATUS_FILE)
+        except (IOError, OSError) as e:
+            if os.path.exists(tmp):
+                os.remove(tmp)
+            raise
 
 def get_module_status():
     return _module_status
@@ -114,7 +125,7 @@ def start_thread(name, module, interval=10):
         if name in _THREADS and _THREADS[name].is_alive():
             get_default_logger().warning('%s already running', name)
             return
-        t = DaemonThread(module.name, module, interval)
+        t = mgr.controller.daemon.DaemonThread(module.name, module, interval)
         t.start()
         _THREADS[name] = t
         get_default_logger().info('%s thread started', name)

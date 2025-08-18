@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, unicode_literals
 import threading
-import utils
+import mgr.utils as utils
+
+__all__ = ['DaemonThread', 'DaemonManager']
 
 lock = threading.Lock()
 
@@ -88,5 +90,10 @@ class DaemonManager:
         
     def start(self):
         self.run_all()
+        
+    def reload_all_modules(self, module_registry, module_status):
+        self._module_registry = module_registry
+        self.status = module_status
+        self.reload_all()
         
         

@@ -47,6 +47,19 @@ class Core(object):
     def is_module_enabled(self, name):
         return utils.get_module_status().get(name, False)
 
+    def refresh_module_registry(self):
+        utils.reload_module_status()
+        self.dm.reload_all_modules(utils.get_module_registry(), utils.get_module_status())
+
+    def set_status(self, name, status):
+        utils.set_module_status(name, status)
+
+    def get_module_registry(self):
+        return utils.get_module_registry()
+
+    def get_status(self):
+        return utils.get_module_status()
+
 # 单例暴露
 def init(log_prefix="mag", interval=30):
     core = Core()

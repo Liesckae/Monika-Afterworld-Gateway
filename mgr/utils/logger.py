@@ -2,8 +2,9 @@
 # logger.py
 import logging, logging.handlers, sys
 import constants
-handler = logging.StreamHandler(sys.stdout)
+import os
+handler = logging.FileHandler(constants.m_log_file)
 handler.setFormatter(logging.Formatter(constants.m_logger_format))
-m_logger = logging.getLogger()
+m_logger = logging.getLogger("mgr")
 m_logger.addHandler(handler)
 m_logger.setLevel(logging.INFO)

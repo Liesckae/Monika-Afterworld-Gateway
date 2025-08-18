@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function, unicode_literals
 import os
 import ConfigParser
 # 因为renpy太老旧了没有接口（反正我没找到，如果你有建议的话直接PR就好了），所以我只有直接用python来定义

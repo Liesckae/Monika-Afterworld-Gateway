@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+from __future__ import print_function, unicode_literals
 import base
 import time
 import utils
@@ -10,7 +12,7 @@ class EventQueueTrigger(base.Base):
     type = 'EventQueueTrigger'
 
     def __init__(self, name, desc=''):
-        super().__init__(name, desc)
+        super(base.Base, self).__init__(name, desc)
         self._seen = set()          # 已触发过的 key
 
     def is_match(self, ctx=None):
@@ -26,7 +28,7 @@ class CooldownTrigger(base.Base):
     type = 'CooldownTrigger'
 
     def __init__(self, name, desc='', threshold=3, cooldown=30):
-        super().__init__(name, desc)
+        super(base.Base, self).__init__(name, )
         self.threshold = threshold
         self.cooldown = cooldown
         self._count = 0
@@ -37,8 +39,10 @@ class CooldownTrigger(base.Base):
         if now - self._last > self.cooldown:
             self._count = 0
 
+        if now - self._last > self.cooldown:
+            self._count = 0
+            self._last = now
         self._count += 1
-        self._last = now
         return self._count >= self.threshold
 
 
@@ -47,7 +51,7 @@ class ConditionChainTrigger(base.Base):
     type = 'ConditionChainTrigger'
 
     def __init__(self, name, desc='', conditions=None):
-        super().__init__(name, desc)
+        super(base.Base, self).__init__(name, desc)
         self.conditions = conditions or {}   # {key: expected_value}
 
     def is_match(self, ctx=None):

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+from __future__ import print_function, unicode_literals
 import base
 
 
@@ -13,5 +15,5 @@ class TimeTrigger(base.Base):
         Returns:
             bool: True if meet the condition; False if not
         """
-        return super().is_match()
+        return super(base.Base, self).__init__()
     

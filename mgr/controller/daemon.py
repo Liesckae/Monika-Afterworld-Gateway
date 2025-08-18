@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+from __future__ import print_function, unicode_literals
 import threading
 import utils
 
@@ -77,7 +79,7 @@ class DaemonManager:
             raise ValueError('%s module does not exists.' % module_name)
         self._threads[module_name].stop()
         self._threads[module_name].join()
-        utils.set_module_status(name, False)
+        utils.set_module_status(module_name, False)
         
     def reload_all(self):
         self.stop_all()

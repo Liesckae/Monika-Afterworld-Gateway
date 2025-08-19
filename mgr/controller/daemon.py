@@ -31,6 +31,7 @@ class DaemonThread(threading.Thread):
             – False：仅 sleep，不退出线程（等外部把它改 True）。
             – True：检查 module.triggers 列表里所有触发器。
         • 仅当所有触发器的 is_match() 都返回 True 时才调用 execute()。
+        • 当满足条件时，将每个触发器的execute()方法的返回值作为上下文传递给模块的execute()方法。
         • 任何异常只影响单轮，线程继续。
         """
         logger = self.logger
@@ -47,13 +48,12 @@ class DaemonThread(threading.Thread):
                 continue
 
             try:
-                # 收集运行参数
-                args, kwargs = module.get_runtime_args() or ((), {})
-
                 # 要求所有触发器的 is_match() 都为 True
                 triggers = module.triggers if module.triggers is not None else []
                 if all(trigger.is_match() for trigger in triggers):
-                    module.execute(*args, **kwargs)
+                    # 上下文
+                    ctx = {trigger.name: trigger.execute({}) for trigger in triggers}
+                    module.execute(ctx)
 
             except Exception as e:
                 logger.exception("%s error: %s", self.name, e)
@@ -104,12 +104,11 @@ class DaemonManager:
         
             
     def stop_all(self):
-        # 停止所有守护线程
-        for t in self._threads.values():
-            t.stop()
-        for t in self._threads.values():
-            t.join()
-            
+        # 只关闭已启动的线程
+        for t in list(self._threads.values()):
+            if t.is_alive():
+                t.stop()
+                t.join()
         self._threads.clear()
         
     def remove_module(self, module_name):

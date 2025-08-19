@@ -13,7 +13,7 @@ class Test(Base):
     triggers = [debugtrigger.DebugTrigger(), randomtrigger.RandomTrigger(probability=1)]
     is_enable = True
 
-    def execute(self, *args, **kwargs):
+    def execute(self, ctx):
         # 执行测试逻辑
         import logging
         

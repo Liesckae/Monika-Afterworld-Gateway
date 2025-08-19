@@ -16,3 +16,7 @@ class Base:
         # 检查是否满足触发条件，子类需实现此方法
         pass
     
+    def execute(self, *args, **kwargs):
+        # 用于传递上下文
+        pass
+    

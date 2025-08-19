@@ -162,3 +162,13 @@ def set_module_status(name, enabled):
     global _module_status
     _module_status[name] = bool(enabled)
     save_module_status()
+    
+    
+def get_config():
+    import mgr.utils.constants as c
+    return c.cfg
+    
+# =======================================模块相关函数===============================================
+
+def invasion_log(msg):
+    pass

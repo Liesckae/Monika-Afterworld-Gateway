@@ -4,6 +4,7 @@ from __future__ import print_function, unicode_literals
 import base
 import time
 import utils
+import renpy
 
 m_logger = utils.get_default_logger()
 
@@ -12,7 +13,7 @@ class EventQueueTrigger(base.Base):
     """触发一次后把 key 加入队列，避免重复触发"""
     type = 'EventQueueTrigger'
 
-    def __init__(self, name, desc=''):
+    def __init__(self, name='', desc=''):
         # 初始化事件队列触发器
         super(base.Base, self).__init__(name, desc)
         self._seen = set()          # 已触发过的 key
@@ -30,7 +31,7 @@ class CooldownTrigger(base.Base):
     """连续触发 N 次后进入冷却"""
     type = 'CooldownTrigger'
 
-    def __init__(self, name, desc='', threshold=3, cooldown=30):
+    def __init__(self, name='', desc='', threshold=3, cooldown=30):
         # 初始化冷却触发器
         super(base.Base, self).__init__(name, desc)
         self.threshold = threshold
@@ -55,7 +56,7 @@ class ConditionChainTrigger(base.Base):
     """当所有条件键均匹配时触发一次"""
     type = 'ConditionChainTrigger'
 
-    def __init__(self, name, desc='', conditions=None):
+    def __init__(self, name='', desc='', conditions=None):
         # 初始化条件链触发器
         super(base.Base, self).__init__(name, desc)
         self.conditions = conditions or {}   # {key: expected_value}

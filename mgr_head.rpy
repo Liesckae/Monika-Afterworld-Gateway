@@ -47,6 +47,9 @@ init python:
     def mag_status(flag):
         return ">启用" if flag else ">禁用"
 
+    def _mag_switch_text(name, flag):
+        # 直接返回整行文字，避免在 screen 里再做字符串插值
+        return "{}  {}".format(name, ">启用" if flag else ">禁用")
 # 3. 保存默认值
 default persistent.mag_cloud_sync  = False
 default persistent.mag_show_stats  = False
@@ -95,6 +98,7 @@ screen dp_module_settings():
     modal True
     zorder 200
     style_prefix "confirm"
+
     add mas_getTimeFile("gui/overlay/confirm.png")
 
     frame:
@@ -102,31 +106,44 @@ screen dp_module_settings():
             ymaximum 550
             xmaximum 600
             spacing 5
+
             text "{size=24}{color=#FFFFFF}模块设置{/color}{/size}" xalign 0.5
 
             viewport:
                 scrollbars "vertical"
                 mousewheel True
-                ymaximum 450
+                ymaximum 400
                 xmaximum 580
+
                 vbox:
                     spacing 5
-                    for name, enabled in mag_tm.get_status().items():
+                    for name, enabled in store.mag_tm.get_status().items():
                         hbox:
                             xpos 20
                             spacing 10
-                            text "[name]" xalign 0.0
-                            python:
-                                status = ">启用" if enabled else ">禁用"
-                            text status xalign 0.5 xsize 80
-                            textbutton _("启用") selected enabled action Function(_mag_toggle, name)
+
+                            # 一行文本同时显示模块名和状态
+                            text _mag_switch_text(name, enabled) xalign 0.0
+
+                            textbutton _("启用")  selected enabled  action Function(_mag_toggle, name)
                             textbutton _("禁用") selected (not enabled) action Function(_mag_toggle, name)
 
+            # 底部按钮
             hbox:
                 xalign 0.5
-                spacing 100
-                textbutton _("返回") action Hide("dp_module_settings")
+                spacing 20
 
+                textbutton _("刷新模块"):
+                    style "check_label"
+                    action [
+                        Function(store.mag_dm.stop_all),
+                        Function(store.mag_dm.reload_all_modules,
+                                store.mag_tm.get_module_registry(),
+                                store.mag_tm.get_status()),
+                        Function(store.mag_dm.start)
+                    ]
+
+                textbutton _("返回") action Hide("dp_module_settings")
 screen dp_basic_settings():
     tag gateway_basic
     modal True

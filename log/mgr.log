@@ -1,6 +1,0 @@
-2025-08-18 23:26:55,022:DEBUG:mgr:init module mgr.
-2025-08-18 23:26:55,022:DEBUG:mgr:init mgr.core.
-2025-08-18 23:26:55,023:DEBUG:mgr:daemon threads started.
-2025-08-18 23:26:55,023:INFO:mgr:Core created DaemonManager with 0 modules
-2025-08-18 23:26:55,023:INFO:mgr:registry keys before DaemonManager: [u'test']
-2025-08-18 23:26:55,028:INFO:mgr:This is a fucking test message.

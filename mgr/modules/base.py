@@ -52,7 +52,7 @@ class Base(object):
             return
         import mgr.utils.constants as c
         c._module_registry[self.name] = self
-        c._trigger_registry[self.name] = list(self.triggers)
+        c._trigger_registry[self.name] = self.triggers
         logging.getLogger("mgr").debug("registered %s, registry=%r",
                                        self.name, c._module_registry.keys())
                 

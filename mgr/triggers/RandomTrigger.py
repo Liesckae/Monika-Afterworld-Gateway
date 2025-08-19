@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 # 随机触发器，基于概率触发
 from __future__ import print_function, unicode_literals
-import base
+import mgr.modules.base as base
 import random
 
 class RandomTrigger(base.Base):
     type = 'Random Trigger'
     
-    def __init__(self, name, desc='', probability=0):
+    def __init__(self, name='', desc='', probability=0):
         """Initialize when the subclass is instantiates
 
         Args:
@@ -16,7 +16,6 @@ class RandomTrigger(base.Base):
             probability (int, optional): The probability (0 - 1.0) that the trigger should execute.Defaults to 0.
         """
         # 初始化随机触发器
-        super().__init__(name, desc)
         self.probability = probability
         
     def is_match(self):

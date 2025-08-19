@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # 调试触发器，用于测试和调试
 from __future__ import print_function, unicode_literals
-import utils
 import base
 
 class DebugTrigger(base.Base):

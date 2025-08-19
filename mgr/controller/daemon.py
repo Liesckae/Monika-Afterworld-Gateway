@@ -24,19 +24,44 @@ class DaemonThread(threading.Thread):
         self.is_running = False
         
     def run(self):
-        # 线程运行逻辑，定期检查触发器并执行模块任务
-        while not getattr(self.stopFlag, 'is_set', self.stopFlag.isSet)():
+        """
+        守护线程主循环：
+        • 一旦启动，除非外部 stop()，否则一直循环。
+        • 每轮实时读取 self.module.is_enable：
+            – False：仅 sleep，不退出线程（等外部把它改 True）。
+            – True：检查 module.triggers 列表里所有触发器。
+        • 仅当所有触发器的 is_match() 都返回 True 时才调用 execute()。
+        • 任何异常只影响单轮，线程继续。
+        """
+        logger = self.logger
+        stop_flag = self.stopFlag
+        interval  = self.interval
+        module    = self.module          # 局部变量加速访问
+
+        while not (stop_flag.is_set() if hasattr(stop_flag, 'is_set') else stop_flag.isSet()):
+            # 实时读取模块开关
+            self.is_enable = module.is_enable
             if not self.is_enable:
-                self.stopFlag.wait(self.interval)
+                # 被禁用：空转等待
+                stop_flag.wait(interval)
                 continue
 
             try:
-                args, kwargs = self.module.get_runtime_args() or ((), {})
-                if all(t.is_match() for t in self.triggers):
-                    self.module.execute(*args, **kwargs)
+                # 收集运行参数
+                args, kwargs = module.get_runtime_args() or ((), {})
+
+                # 要求所有触发器的 is_match() 都为 True
+                triggers = module.triggers if module.triggers is not None else []
+                if all(trigger.is_match() for trigger in triggers):
+                    module.execute(*args, **kwargs)
+
             except Exception as e:
-                self.logger.exception("%s error: %s", self.name, e)
-            self.stopFlag.wait(self.interval)
+                logger.exception("%s error: %s", self.name, e)
+
+            # 等下一轮
+            stop_flag.wait(interval)
+
+        logger.info('%s daemon thread quit.', self.name)
                                 
         
     def stop(self):
